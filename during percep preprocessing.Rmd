@@ -1,0 +1,115 @@
+---
+title: "during perception"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+library(dplyr)
+```
+
+
+```{r}
+preprocess <- function(file) {
+  subject <- read.csv(file, header = TRUE, sep = ",") %>% 
+    select(subject_nr, BB_test_audio, BB_test_left, BB_test_right, NB_test_audio, NB_test_left, NB_test_right, count_radboudbox_response_BB_test, count_radboudbox_response_NB_test,response, response_radboudbox_response_BB_test, response_radboudbox_response_NB_test, title) %>% #relevant columns
+    slice(c((5:88),(173:256))) %>% #relevant rows
+    mutate(
+      contStep = case_when(
+      BB_test_audio == "sik-sec1.wav" ~ "1",
+      BB_test_audio == "sik-sec2.wav" ~ "2",
+      BB_test_audio == "sik-sec3.wav" ~ "3",
+      BB_test_audio == "sik-sec4.wav" ~ "4",
+      BB_test_audio == "sik-sec5.wav" ~ "5",
+      BB_test_audio == "sik-sec6.wav" ~ "6",
+      BB_test_audio == "sik-sec7.wav" ~ "7",
+      BB_test_audio == "pip-pep_continuumStep_1_stereo.wav" ~ "1",
+      BB_test_audio == "pip-pep_continuumStep_2_stereo.wav" ~ "2",
+      BB_test_audio == "pip-pep_continuumStep_3_stereo.wav" ~ "3",
+      BB_test_audio == "pip-pep_continuumStep_4_stereo.wav" ~ "4",
+      BB_test_audio == "pip-pep_continuumStep_5_stereo.wav" ~ "5",
+      BB_test_audio == "pip-pep_continuumStep_6_stereo.wav" ~ "6",
+      BB_test_audio == "pip-pep_continuumStep_7_stereo.wav" ~ "7",
+      BB_test_audio == "kik-kek_continuumStep_1_stereo.wav" ~ "1",
+      BB_test_audio == "kik-kek_continuumStep_2_stereo.wav" ~ "2",
+      BB_test_audio == "kik-kek_continuumStep_3_stereo.wav" ~ "3",
+      BB_test_audio == "kik-kek_continuumStep_4_stereo.wav" ~ "4",
+      BB_test_audio == "kik-kek_continuumStep_5_stereo.wav" ~ "5",
+      BB_test_audio == "kik-kek_continuumStep_6_stereo.wav" ~ "6",
+      BB_test_audio == "kik-kek_continuumStep_7_stereo.wav" ~ "7",
+      NB_test_audio == "sik-sec1.wav" ~ "1",
+      NB_test_audio == "sik-sec2.wav" ~ "2",
+      NB_test_audio == "sik-sec3.wav" ~ "3",
+      NB_test_audio == "sik-sec4.wav" ~ "4",
+      NB_test_audio == "sik-sec5.wav" ~ "5",
+      NB_test_audio == "sik-sec6.wav" ~ "6",
+      NB_test_audio == "sik-sec7.wav" ~ "7",
+      NB_test_audio == "pip-pep_continuumStep_1_stereo.wav" ~ "1",
+      NB_test_audio == "pip-pep_continuumStep_2_stereo.wav" ~ "2",
+      NB_test_audio == "pip-pep_continuumStep_3_stereo.wav" ~ "3",
+      NB_test_audio == "pip-pep_continuumStep_4_stereo.wav" ~ "4",
+      NB_test_audio == "pip-pep_continuumStep_5_stereo.wav" ~ "5",
+      NB_test_audio == "pip-pep_continuumStep_6_stereo.wav" ~ "6",
+      NB_test_audio == "pip-pep_continuumStep_7_stereo.wav" ~ "7",
+      NB_test_audio == "kik-kek_continuumStep_1_stereo.wav" ~ "1",
+      NB_test_audio == "kik-kek_continuumStep_2_stereo.wav" ~ "2",
+      NB_test_audio == "kik-kek_continuumStep_3_stereo.wav" ~ "3",
+      NB_test_audio == "kik-kek_continuumStep_4_stereo.wav" ~ "4",
+      NB_test_audio == "kik-kek_continuumStep_5_stereo.wav" ~ "5",
+      NB_test_audio == "kik-kek_continuumStep_6_stereo.wav" ~ "6",
+      NB_test_audio == "kik-kek_continuumStep_7_stereo.wav" ~ "7",
+      TRUE ~ "filler"),
+      group = case_when(
+        title == "BB-NB" ~ "BN",
+        title == "NB-BB" ~ "NB"
+        ),
+      responseVowel = case_when(
+      BB_test_left == "sik" & response == "A" ~ "I", 
+      BB_test_right== "sec" & response == "E" ~ "E",
+      BB_test_left == "pip" & response == "A" ~ "I",
+      BB_test_right== "pep" & response == "E" ~ "E",
+      BB_test_left == "kek" & response == "A" ~ "E",
+      BB_test_right== "kik" & response == "E" ~ "I",
+      NB_test_left == "sik" & response == "A" ~ "I", 
+      NB_test_right== "sec" & response == "E" ~ "E",
+      NB_test_left == "pip" & response == "A" ~ "I",
+      NB_test_right== "pep" & response == "E" ~ "E",
+      NB_test_left == "kek" & response == "A" ~ "E",
+      NB_test_right== "kik" & response == "E" ~ "I"
+      ),
+      audio = case_when(
+      group == "BN" & row_number() < 85 ~ BB_test_audio,
+      group == "BN" & row_number() > 84 ~ NB_test_audio,
+      group == "NB" & row_number() < 85 ~ NB_test_audio,
+      group == "NB" & row_number() > 84 ~ BB_test_audio
+      ),
+      biteblock = case_when(
+      group == "BN" & row_number() < 85 ~ "Y",
+      group == "BN" & row_number() > 84 ~ "N",
+      group == "NB" & row_number() < 85 ~ "N",
+      group == "NB" & row_number() > 84 ~ "Y"
+      )
+    )
+}
+
+
+```
+
+```{r}
+percep <- preprocess("subject-1.csv")
+```
+
+```{r}
+for (n in c(2:22)){
+  name <- paste("subject-",n,".csv", sep = '')
+  processed<- preprocess(name)
+  processed_n <- processed
+  percep <- bind_rows(percep, processed_n)
+}
+
+nrow(percep)
+write.csv(percep, file = "percepduring.csv")
+```
