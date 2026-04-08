@@ -25,6 +25,8 @@ subject number should be strings
 
 responseVowel should be factors
 
+responseE should be numeric
+
 group should be factors
 
 contStep should be numeric
@@ -33,34 +35,46 @@ biteblock should be factors
 
 trial number should start from 1 insteado of 0
 
+
 change them accordingly:
 ```{r}
 df$subject_nr <- as.character(df$subject_nr)
 df$responseVowel <- as.factor(df$responseVowel)
+df$responseE <- as.numeric(df$responseE)
 df$group <- as.factor(df$group)
 df$contStep <- as.numeric(df$contStep)
+df$biteblock <- as.factor(df$biteblock)
 df<- df %>% mutate(count_radboudbox_response_BB_test = count_radboudbox_response_BB_test + 1, 
                    count_radboudbox_response_NB_test = count_radboudbox_response_NB_test +1) #so that sequence number counting starts from 1 instead of 0
 ```
 
 coding in contrast levels
 ```{r}
-df$biteblock <- relevel(df$BB, ref = "NB")
+df$biteblock <- relevel(df$biteblock, ref = "N")
+df$group <- relevel(df$group, ref = "NB")
 #centering the constinuum step to step 4 (the middle step)
 df$contStep <- df$contStep -4
 ```
 
+lmer
+```{r}
+duringLmer <- lmer(responseE~ contStep*group*biteblock + (contStep|subject_nr) + (1|pair), data = df)
+summary(duringLmer)
+                   
+```
+
+
 basic brms
 
 ```{r}
-during_model <- responseVowel~
-  fit <- 
+during_model <- responseE~ contStep*group*biteblock + (contStep|subject_nr) + (1|pair)
+fit <- brm(during_model, data = df, family = bernoulli(), chains = 4, iter = 10000, warmup = 5000, cores = 2, seed = 1544)
 ```
 
-model1 <- responseE~ cstep * prepost * AF * BB + (1|subject_nr) + (1|pair)
-
-fit1 <- brm(model1, data = perc,family = bernoulli(), seed = 446) #setting seed for reproducibility
+```{r}
+summary(fit)
 ```
+
 
 Plot trace and density:
 

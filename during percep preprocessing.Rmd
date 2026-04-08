@@ -91,7 +91,19 @@ preprocess <- function(file) {
       group == "BN" & row_number() > 84 ~ "N",
       group == "NB" & row_number() < 85 ~ "N",
       group == "NB" & row_number() > 84 ~ "Y"
-      )
+      ),
+      responseE = (case_when(
+        response == "E" ~ "1",
+        response == "I" ~ "0",
+        TRUE ~ "filler")
+        ),
+       pair = case_when(BB_test_left == "sik" | BB_test_right == "sik"~ "sik-sec",
+                        BB_test_left == "pip" | BB_test_right == "pip" ~ "pip-pep",
+                        BB_test_left == "kek" | BB_test_right == "kek" ~ "kik-kek",
+                        NB_test_left == "sik" | NB_test_right == "sik"~ "sik-sec",
+                        NB_test_left == "pip" | NB_test_right == "pip" ~ "pip-pep",
+                        NB_test_left == "kek" | NB_test_right == "kek" ~ "kik-kek"
+    )
     )
 }
 
