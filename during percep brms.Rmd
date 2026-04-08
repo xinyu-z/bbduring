@@ -1,0 +1,87 @@
+---
+title: "bb while perception"
+output: html_notebook
+---
+
+
+libraries
+```{r}
+library(dplyr)
+library(lme4)
+library(brms)
+```
+
+read in data
+```{r}
+df <- read.csv("percepduring.csv", sep = ",", header = TRUE)
+```
+
+check data types
+```{r}
+head(df)
+```
+
+subject number should be strings
+
+responseVowel should be factors
+
+group should be factors
+
+contStep should be numeric
+
+biteblock should be factors
+
+trial number should start from 1 insteado of 0
+
+change them accordingly:
+```{r}
+df$subject_nr <- as.character(df$subject_nr)
+df$responseVowel <- as.factor(df$responseVowel)
+df$group <- as.factor(df$group)
+df$contStep <- as.numeric(df$contStep)
+df<- df %>% mutate(count_radboudbox_response_BB_test = count_radboudbox_response_BB_test + 1, 
+                   count_radboudbox_response_NB_test = count_radboudbox_response_NB_test +1) #so that sequence number counting starts from 1 instead of 0
+```
+
+coding in contrast levels
+```{r}
+df$biteblock <- relevel(df$BB, ref = "NB")
+#centering the constinuum step to step 4 (the middle step)
+df$contStep <- df$contStep -4
+```
+
+basic brms
+
+```{r}
+during_model <- responseVowel~
+  fit <- 
+```
+
+model1 <- responseE~ cstep * prepost * AF * BB + (1|subject_nr) + (1|pair)
+
+fit1 <- brm(model1, data = perc,family = bernoulli(), seed = 446) #setting seed for reproducibility
+```
+
+Plot trace and density:
+
+```{r}
+plot(fit1)
+```
+
+posterior predictive check:
+
+```{r}
+pp_check(fit1)
+```
+
+
+summarizing the results:
+
+```{r}
+summary(fit1)
+```
+
+Check $R^2$
+
+```{r}
+bayes_R2(fit1)
