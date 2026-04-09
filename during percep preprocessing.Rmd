@@ -93,8 +93,8 @@ preprocess <- function(file) {
       group == "NB" & row_number() > 84 ~ "Y"
       ),
       responseE = (case_when(
-        response == "E" ~ "1",
-        response == "I" ~ "0",
+        responseVowel == "E" ~ "1",
+        responseVowel == "I" ~ "0",
         TRUE ~ "filler")
         ),
        pair = case_when(BB_test_left == "sik" | BB_test_right == "sik"~ "sik-sec",
