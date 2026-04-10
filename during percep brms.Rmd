@@ -54,11 +54,26 @@ df$biteblock <- relevel(df$biteblock, ref = "N")
 df$group <- relevel(df$group, ref = "NB")
 #centering the constinuum step to step 4 (the middle step)
 df$contStep <- df$contStep -4
+
+
+contrast <- cbind (c(0, 1))
+colnames (contrast) <- c("-S+N")
+contrasts (table$region) <- contrast
+contrast <- cbind (c(+0.5, -0.5))
+colnames (contrast) <- c("-Y+O")
+contrasts (table$age) <- contrast
 ```
 
 lmer
 ```{r}
-duringLmer <- lmer(responseE~ contStep*group*biteblock + (contStep|subject_nr) + (1|pair), data = df)
+duringLmer <- glmer(responseE~ contStep  *group * biteblock + (contStep|subject_nr) + (biteblock|subject_nr) + (1|pair), data = df, family = binomial)
+summary(duringLmer)
+                   
+```
+
+```{r}
+duringLmer <- glmer(responseE~ contStep*group*biteblock + (1|subject_nr), data = df,family=binomial(link="logit"),
+            control=glmerControl(optimizer="bobyqa"))
 summary(duringLmer)
                    
 ```
@@ -68,7 +83,7 @@ basic brms
 
 ```{r}
 during_model <- responseE~ contStep*group*biteblock + (contStep|subject_nr) + (1|pair)
-fit <- brm(during_model, data = df, family = bernoulli(), chains = 4, iter = 10000, warmup = 5000, cores = 2, seed = 1544)
+fit <- brm(during_model, data = df, family = bernoulli(),control = list(adapt_delta = 0.999), chains = 4, iter = 10000, warmup = 5000, cores = 2, seed = 1417)
 ```
 
 ```{r}
@@ -79,23 +94,18 @@ summary(fit)
 Plot trace and density:
 
 ```{r}
-plot(fit1)
+plot(fit)
 ```
 
 posterior predictive check:
 
 ```{r}
-pp_check(fit1)
+pp_check(fit)
 ```
 
-
-summarizing the results:
-
-```{r}
-summary(fit1)
-```
 
 Check $R^2$
 
 ```{r}
-bayes_R2(fit1)
+bayes_R2(fit)
+```
