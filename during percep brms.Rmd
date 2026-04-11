@@ -89,7 +89,13 @@ fit <- brm(during_model, data = df, family = bernoulli(),control = list(adapt_de
 ```{r}
 summary(fit)
 ```
+ exp(-0.53) = 0.588605 : bbY makes the odds of choosing E 0.59 times greater per step than bbN
+ 
+0.588 times greater is difficult to interpret, thus: exp(0.53) = 1.698932: bbN makes the odds of choosing E 1.70 times *smaller* per step than bbN
 
+"The positive effect of trial progression (contStep) on the outcome was significantly attenuated in the bite block condition, as indicated by a negative interaction (β = −0.53, 95% CrI [−0.84, −0.23]). Although the effect of contStep remained positive, its magnitude was substantially reduced when a bite block was present."
+
+The slope for the BB condition is flatter (more uniform? Check single steps? How?)
 
 Plot trace and density:
 
