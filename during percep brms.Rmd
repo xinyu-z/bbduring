@@ -72,7 +72,7 @@ summary(duringLmer)
 ```
 
 ```{r}
-duringLmer <- glmer(responseE~ contStep*group*biteblock + (1|subject_nr), data = df,family=binomial(link="logit"),
+duringLmer <- glmer(responseE~ contStep*group*biteblock + (contStep|subject_nr), data = df,family=binomial(link="logit"),
             control=glmerControl(optimizer="bobyqa"))
 summary(duringLmer)
                    
