@@ -122,7 +122,7 @@ plots
 
 ```{r}
 #count for number of stimuli in BN group per step
-df %>%  filter(group == "BN", biteblock == "Y") %>% 
+df %>%  filter(group == "NB", biteblock == "Y") %>% 
   count(contStep, responseVowel) #93
 
 #count for number of stimuli in posttest in BB group per step
