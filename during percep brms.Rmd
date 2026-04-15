@@ -9,6 +9,7 @@ libraries
 library(dplyr)
 library(lme4)
 library(brms)
+library(ggplot2)
 ```
 
 read in data
@@ -115,3 +116,37 @@ Check $R^2$
 ```{r}
 bayes_R2(fit)
 ```
+
+
+plots
+
+```{r}
+#count for number of stimuli in BN group per step
+df %>%  filter(group == "BN", biteblock == "Y") %>% 
+  count(contStep, responseVowel) #93
+
+#count for number of stimuli in posttest in BB group per step
+bigtable %>%  filter(BB == "BB", prepost == "post") %>% 
+  count(stepOnCon, responseV) #93
+
+#count for number of stimuli in pretest in NB group per step
+bigtable %>%  filter(BB == "NB", prepost == "pre") %>% 
+  count(stepOnCon, responseV) #87
+
+#count for number of stimuli in posttest in NB group per step
+bigtable %>%  filter(BB == "NB", prepost == "post") %>% 
+  count(stepOnCon, responseV) #87
+
+probs <- df %>%
+  filter(responseV == "E") %>% 
+  count(contStep, responseV, biteblock, group)%>% 
+  mutate(
+    proportionE = case_when(
+      BB == "NB" ~ n/87,
+      BB == "BB" ~ n/93)
+  )
+
+library(ggplot2)
+ggplot(bbstep,aes( x=stepOnCon, y=proportionE,color=BB)) + geom_point() + geom_line() + theme_bw()+scale_color_manual(values=c("#FDE725FF", "#440154FF"))
+```
+
