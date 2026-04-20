@@ -18,67 +18,35 @@ preprocess <- function(file) {
     select(subject_nr, BB_test_audio, BB_test_left, BB_test_right, NB_test_audio, NB_test_left, NB_test_right, count_radboudbox_response_BB_test, count_radboudbox_response_NB_test,response, response_radboudbox_response_BB_test, response_radboudbox_response_NB_test, title) %>% #relevant columns
     slice(c((5:88),(173:256))) %>% #relevant rows
     mutate(
-      contStep = case_when(
-      BB_test_audio == "sik-sec1.wav" ~ "1",
-      BB_test_audio == "sik-sec2.wav" ~ "2",
-      BB_test_audio == "sik-sec3.wav" ~ "3",
-      BB_test_audio == "sik-sec4.wav" ~ "4",
-      BB_test_audio == "sik-sec5.wav" ~ "5",
-      BB_test_audio == "sik-sec6.wav" ~ "6",
-      BB_test_audio == "sik-sec7.wav" ~ "7",
-      BB_test_audio == "pip-pep_continuumStep_1_stereo.wav" ~ "1",
-      BB_test_audio == "pip-pep_continuumStep_2_stereo.wav" ~ "2",
-      BB_test_audio == "pip-pep_continuumStep_3_stereo.wav" ~ "3",
-      BB_test_audio == "pip-pep_continuumStep_4_stereo.wav" ~ "4",
-      BB_test_audio == "pip-pep_continuumStep_5_stereo.wav" ~ "5",
-      BB_test_audio == "pip-pep_continuumStep_6_stereo.wav" ~ "6",
-      BB_test_audio == "pip-pep_continuumStep_7_stereo.wav" ~ "7",
-      BB_test_audio == "kik-kek_continuumStep_1_stereo.wav" ~ "1",
-      BB_test_audio == "kik-kek_continuumStep_2_stereo.wav" ~ "2",
-      BB_test_audio == "kik-kek_continuumStep_3_stereo.wav" ~ "3",
-      BB_test_audio == "kik-kek_continuumStep_4_stereo.wav" ~ "4",
-      BB_test_audio == "kik-kek_continuumStep_5_stereo.wav" ~ "5",
-      BB_test_audio == "kik-kek_continuumStep_6_stereo.wav" ~ "6",
-      BB_test_audio == "kik-kek_continuumStep_7_stereo.wav" ~ "7",
-      NB_test_audio == "sik-sec1.wav" ~ "1",
-      NB_test_audio == "sik-sec2.wav" ~ "2",
-      NB_test_audio == "sik-sec3.wav" ~ "3",
-      NB_test_audio == "sik-sec4.wav" ~ "4",
-      NB_test_audio == "sik-sec5.wav" ~ "5",
-      NB_test_audio == "sik-sec6.wav" ~ "6",
-      NB_test_audio == "sik-sec7.wav" ~ "7",
-      NB_test_audio == "pip-pep_continuumStep_1_stereo.wav" ~ "1",
-      NB_test_audio == "pip-pep_continuumStep_2_stereo.wav" ~ "2",
-      NB_test_audio == "pip-pep_continuumStep_3_stereo.wav" ~ "3",
-      NB_test_audio == "pip-pep_continuumStep_4_stereo.wav" ~ "4",
-      NB_test_audio == "pip-pep_continuumStep_5_stereo.wav" ~ "5",
-      NB_test_audio == "pip-pep_continuumStep_6_stereo.wav" ~ "6",
-      NB_test_audio == "pip-pep_continuumStep_7_stereo.wav" ~ "7",
-      NB_test_audio == "kik-kek_continuumStep_1_stereo.wav" ~ "1",
-      NB_test_audio == "kik-kek_continuumStep_2_stereo.wav" ~ "2",
-      NB_test_audio == "kik-kek_continuumStep_3_stereo.wav" ~ "3",
-      NB_test_audio == "kik-kek_continuumStep_4_stereo.wav" ~ "4",
-      NB_test_audio == "kik-kek_continuumStep_5_stereo.wav" ~ "5",
-      NB_test_audio == "kik-kek_continuumStep_6_stereo.wav" ~ "6",
-      NB_test_audio == "kik-kek_continuumStep_7_stereo.wav" ~ "7",
-      TRUE ~ "filler"),
       group = case_when(
         title == "BB-NB" ~ "BN",
         title == "NB-BB" ~ "NB"
         ),
       responseVowel = case_when(
-      BB_test_left == "sik" & response == "A" ~ "I", 
-      BB_test_right== "sec" & response == "E" ~ "E",
-      BB_test_left == "pip" & response == "A" ~ "I",
-      BB_test_right== "pep" & response == "E" ~ "E",
-      BB_test_left == "kek" & response == "A" ~ "E",
-      BB_test_right== "kik" & response == "E" ~ "I",
-      NB_test_left == "sik" & response == "A" ~ "I", 
-      NB_test_right== "sec" & response == "E" ~ "E",
-      NB_test_left == "pip" & response == "A" ~ "I",
-      NB_test_right== "pep" & response == "E" ~ "E",
-      NB_test_left == "kek" & response == "A" ~ "E",
-      NB_test_right== "kik" & response == "E" ~ "I"
+      group == "BN" & row_number() < 85 & BB_test_left == "sik" & response == "A" ~ "I", 
+      group == "BN" & row_number() < 85 & BB_test_right== "sec" & response == "E" ~ "E",
+      group == "BN" & row_number() < 85 & BB_test_left == "pip" & response == "A" ~ "I",
+      group == "BN" & row_number() < 85 & BB_test_right== "pep" & response == "E" ~ "E",
+      group == "BN" & row_number() < 85 & BB_test_left == "kek" & response == "A" ~ "E",
+      group == "BN" & row_number() < 85 & BB_test_right== "kik" & response == "E" ~ "I",
+      group == "BN" & row_number() > 84 & NB_test_left == "sik" & response == "A" ~ "I", 
+      group == "BN" & row_number() > 84 & NB_test_right== "sec" & response == "E" ~ "E",
+      group == "BN" & row_number() > 84 & NB_test_left == "pip" & response == "A" ~ "I",
+      group == "BN" & row_number() > 84 & NB_test_right== "pep" & response == "E" ~ "E",
+      group == "BN" & row_number() > 84 & NB_test_left == "kek" & response == "A" ~ "E",
+      group == "BN" & row_number() > 84 & NB_test_right== "kik" & response == "E" ~ "I",
+      group == "NB" & row_number() < 85 & NB_test_left == "sik" & response == "A" ~ "I",
+      group == "NB" & row_number() < 85 & NB_test_right== "sec" & response == "E" ~ "E",
+      group == "NB" & row_number() < 85 & NB_test_left == "pip" & response == "A" ~ "I",
+      group == "NB" & row_number() < 85 & NB_test_right== "pep" & response == "E" ~ "E",
+      group == "NB" & row_number() < 85 & NB_test_left == "kek" & response == "A" ~ "E",
+      group == "NB" & row_number() < 85 & NB_test_right== "kik" & response == "E" ~ "I",
+      group == "NB" & row_number() > 84 & BB_test_left == "sik" & response == "A" ~ "I", 
+      group == "NB" & row_number() > 84 & BB_test_right== "sec" & response == "E" ~ "E",
+      group == "NB" & row_number() > 84 & BB_test_left == "pip" & response == "A" ~ "I",
+      group == "NB" & row_number() > 84 & BB_test_right== "pep" & response == "E" ~ "E",
+      group == "NB" & row_number() > 84 & BB_test_left == "kek" & response == "A" ~ "E",
+      group == "NB" & row_number() > 84 & BB_test_right== "kik" & response == "E" ~ "I"
       ),
       audio = case_when(
       group == "BN" & row_number() < 85 ~ BB_test_audio,
@@ -86,6 +54,29 @@ preprocess <- function(file) {
       group == "NB" & row_number() < 85 ~ NB_test_audio,
       group == "NB" & row_number() > 84 ~ BB_test_audio
       ),
+      contStep = case_when(
+      audio == "sik-sec1.wav" ~ "1",
+      audio == "sik-sec2.wav" ~ "2",
+      audio == "sik-sec3.wav" ~ "3",
+      audio == "sik-sec4.wav" ~ "4",
+      audio == "sik-sec5.wav" ~ "5",
+      audio == "sik-sec6.wav" ~ "6",
+      audio == "sik-sec7.wav" ~ "7",
+      audio == "pip-pep_continuumStep_1_stereo.wav" ~ "1",
+      audio == "pip-pep_continuumStep_2_stereo.wav" ~ "2",
+      audio == "pip-pep_continuumStep_3_stereo.wav" ~ "3",
+      audio == "pip-pep_continuumStep_4_stereo.wav" ~ "4",
+      audio == "pip-pep_continuumStep_5_stereo.wav" ~ "5",
+      audio == "pip-pep_continuumStep_6_stereo.wav" ~ "6",
+      audio == "pip-pep_continuumStep_7_stereo.wav" ~ "7",
+      audio == "kik-kek_continuumStep_1_stereo.wav" ~ "1",
+      audio == "kik-kek_continuumStep_2_stereo.wav" ~ "2",
+      audio == "kik-kek_continuumStep_3_stereo.wav" ~ "3",
+      audio == "kik-kek_continuumStep_4_stereo.wav" ~ "4",
+      audio == "kik-kek_continuumStep_5_stereo.wav" ~ "5",
+      audio == "kik-kek_continuumStep_6_stereo.wav" ~ "6",
+      audio == "kik-kek_continuumStep_7_stereo.wav" ~ "7",
+      TRUE ~ "filler"),
       biteblock = case_when(
       group == "BN" & row_number() < 85 ~ "Y",
       group == "BN" & row_number() > 84 ~ "N",
@@ -97,12 +88,18 @@ preprocess <- function(file) {
         responseVowel == "I" ~ "0",
         TRUE ~ "filler")
         ),
-       pair = case_when(BB_test_left == "sik" | BB_test_right == "sik"~ "sik-sec",
-                        BB_test_left == "pip" | BB_test_right == "pip" ~ "pip-pep",
-                        BB_test_left == "kek" | BB_test_right == "kek" ~ "kik-kek",
-                        NB_test_left == "sik" | NB_test_right == "sik"~ "sik-sec",
-                        NB_test_left == "pip" | NB_test_right == "pip" ~ "pip-pep",
-                        NB_test_left == "kek" | NB_test_right == "kek" ~ "kik-kek"
+       pair = case_when(group == "BN" & row_number() < 85 & (BB_test_left == "sik" | BB_test_right == "sik")~ "sik-sec",
+                        group == "BN" & row_number() < 85 & (BB_test_left == "pip" | BB_test_right == "pip") ~ "pip-pep",
+                        group == "BN" & row_number() < 85 & (BB_test_left == "kek" | BB_test_right == "kek") ~ "kik-kek",
+                        group == "BN" & row_number() > 84 & (NB_test_left == "sik" | NB_test_right == "sik") ~ "sik-sec",
+                        group == "BN" & row_number() > 84 & (NB_test_left == "pip" | NB_test_right == "pip") ~ "pip-pep",
+                        group == "BN" & row_number() > 84 & (NB_test_left == "kek" | NB_test_right == "kek") ~ "kik-kek",
+                        group == "NB" & row_number() < 85 & (NB_test_left == "sik" | NB_test_right == "sik") ~ "sik-sec",
+                        group == "NB" & row_number() < 85 & (NB_test_left == "pip" | NB_test_right == "pip") ~ "pip-pep",
+                        group == "NB" & row_number() < 85 & (NB_test_left == "kek" | NB_test_right == "kek") ~ "kik-kek",
+                        group == "NB" &row_number() > 84 & (BB_test_left == "sik" | BB_test_right == "sik") ~ "sik-sec",
+                        group == "NB" & row_number() > 84 & (BB_test_left == "pip" | BB_test_right == "pip") ~ "pip-pep",
+                        group == "NB" & row_number() > 84 & (BB_test_left == "kek" | BB_test_right == "kek") ~ "kik-kek"
     )
     )
 }
@@ -125,3 +122,14 @@ for (n in c(2:22)){
 nrow(percep)
 write.csv(percep, file = "percepduring.csv")
 ```
+
+stimuli checks:
+NB-BB group has wrong counts
+subj-3 is in NB group
+problematic steps: 3,5,6
+
+```{r}
+#check step 3
+percep |> filter(contStep == "filler", responseVowel == "I")
+```
+

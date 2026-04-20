@@ -53,16 +53,9 @@ coding in contrast levels
 ```{r}
 df$biteblock <- relevel(df$biteblock, ref = "N")
 df$group <- relevel(df$group, ref = "NB")
-#centering the constinuum step to step 4 (the middle step)
-df$contStep <- df$contStep -4
+#centering the constinuum step to step 4 (the middle step) -> changing this to centering on 3, because data shows that 3 is actually the most confusing step
+df$contStep <- df$contStep -3
 
-
-contrast <- cbind (c(0, 1))
-colnames (contrast) <- c("-S+N")
-contrasts (table$region) <- contrast
-contrast <- cbind (c(+0.5, -0.5))
-colnames (contrast) <- c("-Y+O")
-contrasts (table$age) <- contrast
 ```
 
 lmer
@@ -84,11 +77,12 @@ basic brms
 
 ```{r}
 during_model <- responseE~ contStep*group*biteblock + (contStep|subject_nr) + (1|pair)
-fit <- brm(during_model, data = df, family = bernoulli(),control = list(adapt_delta = 0.999), chains = 4, iter = 10000, warmup = 5000, cores = 2, seed = 1417)
+fit <- brm(during_model, data = df, family = bernoulli(),control = list(adapt_delta = 0.999), chains = 2, iter = 5000, warmup = 2000, cores = 2, seed = 1417)
 ```
 
 ```{r}
 summary(fit)
+get_prior(fit, data = df)
 ```
  exp(-0.53) = 0.588605 : bbY makes the odds of choosing E 0.59 times greater per step than bbN
  
@@ -118,35 +112,50 @@ bayes_R2(fit)
 ```
 
 
+changing priors
+```{r}
+# Define Cauchy priors
+# Intercept: Cauchy(0, 10)
+# Coefficients: Cauchy(0, 2.5)
+priors <- c(
+  prior(cauchy(0, 10), class = "Intercept"),                
+  prior(cauchy(0, 2.5), class = "b")
+)
+fit2 <- brm(during_model, data = df, 
+            prior = priors,
+            family = bernoulli(),control = list(adapt_delta = 0.99), chains = 2, iter = 5000, warmup = 2000, cores = 2, seed = 1417)
+summary(fit2)
+```
+
+
 plots
 
 ```{r}
-#count for number of stimuli in BN group per step
+#count for number of stimuli in NB group per step, in the bite block condition
 df %>%  filter(group == "NB", biteblock == "Y") %>% 
-  count(contStep, responseVowel) #93
+  count(contStep, responseVowel) #33 
 
-#count for number of stimuli in posttest in BB group per step
-bigtable %>%  filter(BB == "BB", prepost == "post") %>% 
-  count(stepOnCon, responseV) #93
+#count for number of stimuli in NB group per step, in the no bite block condition
+df %>%  filter(group == "NB", biteblock == "N") %>% 
+  count(contStep, responseVowel) #33
 
-#count for number of stimuli in pretest in NB group per step
-bigtable %>%  filter(BB == "NB", prepost == "pre") %>% 
-  count(stepOnCon, responseV) #87
+#count for number of stimuli in BN group per step, in the bite block condition
+df %>%  filter(group == "BN", biteblock == "Y") %>% 
+  count(contStep, responseVowel) #33
 
-#count for number of stimuli in posttest in NB group per step
-bigtable %>%  filter(BB == "NB", prepost == "post") %>% 
-  count(stepOnCon, responseV) #87
+#count for number of stimuli in BN group per step, in the no bite block condition
+df %>%  filter(group == "BN", biteblock == "N") %>% 
+  count(contStep, responseVowel) #33
+
 
 probs <- df %>%
-  filter(responseV == "E") %>% 
-  count(contStep, responseV, biteblock, group)%>% 
+  filter(responseVowel == "E") %>% 
+  count(contStep, responseVowel, biteblock, group)%>% 
   mutate(
-    proportionE = case_when(
-      BB == "NB" ~ n/87,
-      BB == "BB" ~ n/93)
+    proportionE = n/33
   )
 
 library(ggplot2)
-ggplot(bbstep,aes( x=stepOnCon, y=proportionE,color=BB)) + geom_point() + geom_line() + theme_bw()+scale_color_manual(values=c("#FDE725FF", "#440154FF"))
+ggplot(probs,aes( x=contStep, y=proportionE,color=biteblock, linetype = group)) + geom_point() + geom_line() + theme_bw()+scale_color_manual(values=c("#FDE725FF", "#440154FF"))
 ```
-
+the most confusing step seems to be -1 (which is step 3, recenter the data and rerun the model)
