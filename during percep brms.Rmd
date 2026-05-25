@@ -55,13 +55,15 @@ df<- df %>% mutate(count_radboudbox_response_BB_test = count_radboudbox_response
 coding in contrast levels
 ```{r}
 df$biteblock <- relevel(df$biteblock, ref = "N")
-df$group <- relevel(df$group, ref = "NB")
-#centering the constinuum step to step 4 (the middle step) -> changing this to centering on 3, because data shows that 3 is actually the most confusing step
-df$contStep <- df$contStep -3
+contrast <- cbind (c(-0.5, +0.5))
+colnames (contrast) <- c("-BN+NB")
+contrasts (df$group) <- contrast
+#centering the continuum step to step 4 (the middle step) -> changing this to centering on 3, because data shows that 3 is actually the most confusing step
+df$contStep <- df$contStep -4
 
 ```
 
-lmer
+gmer
 ```{r}
 duringLmer <- glmer(responseE~ contStep  *group * biteblock + (contStep|subject_nr) + (biteblock|subject_nr) + (1|pair), data = df, family = binomial)
 summary(duringLmer)
@@ -69,9 +71,9 @@ summary(duringLmer)
 ```
 
 ```{r}
-duringLmer <- glmer(responseE~ contStep*group*biteblock + (contStep|subject_nr)+ (1|pair), data = df,family=binomial(link="logit"),
+duringGlmer <- glmer(responseE~ contStep*group*biteblock + (contStep|subject_nr)+ (1|pair), data = df,family=binomial(link="logit"),
             control=glmerControl(optimizer="bobyqa"))
-summary(duringLmer)
+summary(duringGlmer)
                    
 ```
 
@@ -85,7 +87,7 @@ fit <- brm(during_model, data = df, family = bernoulli(),control = list(adapt_de
 
 ```{r}
 summary(fit)
-get_prior(fit, data = df)
+#get_prior(fit, data = df)
 ```
  exp(-0.53) = 0.588605 : bbY makes the odds of choosing E 0.59 times greater per step than bbN
  
@@ -94,6 +96,12 @@ get_prior(fit, data = df)
 "The positive effect of trial progression (contStep) on the outcome was significantly attenuated in the bite block condition, as indicated by a negative interaction (β = −0.53, 95% CrI [−0.84, −0.23]). Although the effect of contStep remained positive, its magnitude was substantially reduced when a bite block was present."
 
 The slope for the BB condition is flatter (more uniform? Check single steps? How?)
+
+The above was corrected by investigating the repeated data due to open sesame propagation
+
+(releveling to BB=Y as intercept did not change the significance of "group")
+
+
 
 Plot trace and density:
 
@@ -147,18 +155,51 @@ df %>%  filter(group == "BN", biteblock == "Y") %>%
   count(contStep, responseVowel) #33
 
 #count for number of stimuli in BN group per step, in the no bite block condition
-df %>%  filter(group == "BN", biteblock == "N") %>% 
-  count(contStep, responseVowel) #33
-
+#".drop = FALSE" keeps the zero values in instead of dropping the rows 
 
 probs <- df %>%
-  filter(responseVowel == "E") %>% 
-  count(contStep, responseVowel, biteblock, group)%>% 
+  count(contStep, responseVowel, biteblock, group,.drop = FALSE)%>% 
   mutate(
-    proportionE = n/33
-  )
+    proportionE = n/33,
+    #contStep = contStep+3
+  )%>%
+  filter(responseVowel == "E") 
+
+#plot each group separately and add instead
 
 library(ggplot2)
-ggplot(probs,aes( x=contStep, y=proportionE,color=biteblock, linetype = group)) + geom_point() + geom_line() + theme_bw()+scale_color_manual(values=c("#FDE725FF", "#440154FF"))
+ggplot(probs,aes(x=contStep, y=proportionE,color=biteblock, linetype = group))+ geom_point()+ geom_line() + xlab("continuum step") + theme_bw()+ scale_color_manual(values=c("#FDE725FF", "#440154FF"))+ scale_linetype_discrete(labels = c("BB-NB", "NB-BB"))
 ```
-the most confusing step seems to be -1 (which is step 3, recenter the data and rerun the model)
+the most confusing step seems to be step 3
+
+
+Calculating Bayes Factors
+```{r}
+t = 0.541   # the z value as computed in the glmer model
+n1 = 11   # the number of participants in the BN-NB group
+n2 = 11   # the number of participants in the NB-BN group
+
+df = n1 + n2 - 2   # the number of degrees of freedom in an independent-samples t test (Rouder et al. 2009, p.234)
+n = n1 * n2 / (n1 + n2)   # the "number of participants to use in the computations (Rouder et al. 2009, p.234)
+
+# H1: the effect size is any value around 0 with a chance determined by a Cauchy distribution with typical width half-sqrt-2
+
+width = sqrt(2)/2   # the "width" of the Cauchy distribution of d values; Rouder et al.'s r value
+
+#approximating d for computational ease
+
+d = ((-1000*1e4*width+0.5):(1000*1e4*width-0.5)) / 1e4
+weight = 1 / (1 + (d / width) ^ 2)
+b04_1 = dt (t, df) / (mean (weight * dt (t, df, ncp = d * sqrt(n))) / mean (weight))
+d = ((-2000*1e4*width+0.5):(2000*1e4*width-0.5)) / 1e4
+weight = 1 / (1 + (d / width) ^ 2)
+b04_2 = dt (t, df) / (mean (weight * dt (t, df, ncp = d * sqrt(n))) / mean (weight))
+cat ("B04 = ", b04_2 + (b04_2 - b04_1), "\n")
+```
+
+investigating the missing data on step one in the BN group:
+```{r}
+#filtering for step 1
+df |> filter(group == "BN", contStep == 1, biteblock == "Y")
+```
+
